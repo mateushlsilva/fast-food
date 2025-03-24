@@ -1,10 +1,14 @@
 version: "3.8"
 
+networks:
+  minha-rede:
+    driver: bridge
+
 services:
   core-api:
     image: mateushlsilva/core-api:latest
     ports:
-      - "${PORT}:${PORT}"
+      - 8080:8080
     depends_on:
       postgres:
         condition: service_healthy
@@ -15,8 +19,15 @@ services:
       DATABASE_USERNAME: "${DATABASE_USERNAME}"
       DATABASE_PASSWORD: "${DATABASE_PASSWORD}"
       HOST: "${HOST}"
-      PORT: "${PORT}"
+      PORT: 8080
       JWT_SECRET: "${JWT_SECRET}"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/user/me"]
+      interval: 30s
+      retries: 5
+      start_period: 10s
+    networks:
+      - minha-rede
 
   postgres:
     image: postgres:latest
@@ -33,6 +44,8 @@ services:
       interval: 5s
       retries: 5
       start_period: 10s
+    networks:
+      - minha-rede
 
   app:
     image: mateushlsilva/chatbot:1.0
@@ -42,11 +55,13 @@ services:
       - mongo
       - core-api
     environment:
-      CORE_API_URL: http://core-api:${PORT}/user/me
-      CORE_API_URL_POST: http://core-api:${PORT}/pedido
+      CORE_API_URL: http://core-api:8080/user/me
+      CORE_API_URL_POST: http://core-api:8080/pedido
       MONGO_URL: mongodb://mongo:27017
     volumes:
       - ./chatbot-fastfood:/app
+    networks:
+      - minha-rede
 
   mongo:
     image: mongo:latest
@@ -54,6 +69,21 @@ services:
       - "27018:27017"
     volumes:
       - mongo-data:/data/db
+    networks:
+      - minha-rede
+
+  fastfood:
+    image: mateushlsilva/fast-food-front:1.1
+    ports:
+      - "3000:3000"
+    depends_on:
+      - app
+      - core-api
+    environment:
+      NEXT_PUBLIC_API_URL: http://core-api:8080/
+      NEXT_PUBLIC_APIBOT_URL: http://app:8000/
+    networks:
+      - minha-rede
 
 volumes:
   postgres-data:
