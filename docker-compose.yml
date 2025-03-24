@@ -1,0 +1,60 @@
+version: "3.8"
+
+services:
+  core-api:
+    image: mateushlsilva/core-api:latest
+    ports:
+      - "${PORT}:${PORT}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: "${DATABASE_PORT}"
+      DATABASE_NAME: "${DATABASE_NAME}"
+      DATABASE_USERNAME: "${DATABASE_USERNAME}"
+      DATABASE_PASSWORD: "${DATABASE_PASSWORD}"
+      HOST: "${HOST}"
+      PORT: "${PORT}"
+      JWT_SECRET: "${JWT_SECRET}"
+
+  postgres:
+    image: postgres:latest
+    ports:
+      - "${DATABASE_PORT}:${DATABASE_PORT}"
+    environment:
+      POSTGRES_USER: "${DATABASE_USERNAME}"
+      POSTGRES_PASSWORD: "${DATABASE_PASSWORD}"
+      POSTGRES_DB: "${DATABASE_NAME}"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 5
+      start_period: 10s
+
+  app:
+    image: mateushlsilva/chatbot:1.0
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongo
+      - core-api
+    environment:
+      CORE_API_URL: http://core-api:${PORT}/user/me
+      CORE_API_URL_POST: http://core-api:${PORT}/pedido
+      MONGO_URL: mongodb://mongo:27017
+    volumes:
+      - ./chatbot-fastfood:/app
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  postgres-data:
+  mongo-data:
