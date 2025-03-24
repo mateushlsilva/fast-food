@@ -80,8 +80,8 @@ services:
       - app
       - core-api
     environment:
-      NEXT_PUBLIC_API_URL: http://core-api:8080/
-      NEXT_PUBLIC_APIBOT_URL: http://app:8000/
+      NEXT_PUBLIC_API_URL: http://localhost:8080/
+      NEXT_PUBLIC_APIBOT_URL: http://localhost:8000/
     networks:
       - minha-rede
 
