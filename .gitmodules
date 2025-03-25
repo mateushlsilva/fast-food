@@ -1,0 +1,9 @@
+[submodule "core-api-template"]
+	path = core-api-template
+	url = https://github.com/mateushlsilva/core-api-template
+[submodule "fast-food-front"]
+	path = fast-food-front
+	url = https://github.com/mateushlsilva/fast-food-front
+[submodule "chatbot-fastfood"]
+	path = chatbot-fastfood
+	url = https://github.com/mateushlsilva/chatbot-fastfood
